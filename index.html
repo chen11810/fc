@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文献管理 · 要点总结助手</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+:root {
+  --ink: #1a1208;
+  --ink-mid: #3d2b0f;
+  --ink-soft: #7a5c2e;
+  --parchment: #faf6ee;
+  --parchment-dark: #f0e8d4;
+  --parchment-mid: #e4d6b8;
+  --gold: #c8921a;
+  --gold-light: #e8b84b;
+  --moss: #3d6b45;
+  --moss-light: #5a9464;
+  --clay: #a84c2a;
+  --sky: #2a5c7a;
+  --border: #d4c090;
+  --shadow: rgba(26,18,8,0.10);
+  --shadow-deep: rgba(26,18,8,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Serif SC', serif;
+  background: var(--parchment);
+  color: var(--ink);
+  min-height: 100vh;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8921a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--ink);
+  color: var(--parchment);
+  padding: 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  border-bottom: 3px solid var(--gold);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.header-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+}
+.header-sub {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--parchment-mid);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.header-actions { display: flex; gap: 10px; align-items: center; }
+.hbtn {
+  padding: 7px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.hbtn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--parchment-mid);
+}
+.hbtn-outline:hover { border-color: var(--gold-light); color: var(--gold-light); }
+.hbtn-gold {
+  background: var(--gold);
+  color: #fff;
+}
+.hbtn-gold:hover { background: var(--gold-light); }
+
+/* ── LAYOUT ── */
+.app { display: flex; height: calc(100vh - 64px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 320px;
+  min-width: 280px;
+  background: var(--ink);
+  color: var(--parchment);
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid var(--gold);
+  overflow: hidden;
+}
+.sidebar-top {
+  padding: 16px;
+  border-bottom: 1px solid rgba(200,146,26,0.25);
+}
+.sidebar-search {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(200,146,26,0.3);
+  border-radius: 7px;
+  color: var(--parchment);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+}
+.sidebar-search::placeholder { color: rgba(255,255,255,0.3); }
+.sidebar-search:focus { border-color: var(--gold); }
+
+.sidebar-count {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--gold-light);
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.sidebar-list::-webkit-scrollbar { width: 4px; }
+.sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.sidebar-list::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+.lit-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.lit-item:hover { background: rgba(200,146,26,0.08); border-left-color: rgba(200,146,26,0.4); }
+.lit-item.active { background: rgba(200,146,26,0.15); border-left-color: var(--gold); }
+.lit-item-year {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.lit-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lit-item-authors {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  font-style: italic;
+  font-family: 'Crimson Pro', serif;
+}
+.lit-item-del {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: none; border: none;
+  color: rgba(255,255,255,0.2);
+  cursor: pointer; font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.lit-item:hover .lit-item-del { opacity: 1; }
+.lit-item-del:hover { color: var(--clay); }
+
+.lit-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  margin-top: 5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tag-summarized { background: rgba(61,107,69,0.4); color: #8fd49a; }
+.tag-pending { background: rgba(168,76,42,0.4); color: #f4a080; }
+.tag-user { background: rgba(42,92,122,0.4); color: #80c4f4; }
+
+.sidebar-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 2;
+}
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.main::-webkit-scrollbar { width: 6px; }
+.main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ADD PANEL */
+.add-panel {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 20px 28px;
+}
+.add-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.add-panel-title::before {
+  content: '';
+  display: block;
+  width: 3px; height: 14px;
+  background: var(--gold);
+  border-radius: 2px;
+}
+.add-tabs { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.add-tab {
+  flex: 1;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--parchment-dark);
+  color: var(--ink-soft);
+  border: none;
+  transition: all 0.15s;
+  font-family: 'Noto Serif SC', serif;
+}
+.add-tab.active { background: var(--ink); color: var(--gold-light); font-weight: 600; }
+.add-tab:not(:last-child) { border-right: 1px solid var(--border); }
+
+.add-form { display: none; }
+.add-form.show { display: block; }
+
+.form-row { display: flex; gap: 12px; margin-bottom: 10px; }
+.form-group { flex: 1; }
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--parchment);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--gold); background: #fff; }
+.form-textarea { resize: vertical; min-height: 60px; }
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--parchment-dark);
+  transition: all 0.2s;
+  position: relative;
+}
+.upload-zone:hover { border-color: var(--gold); background: #fff8eb; }
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-zone p { font-size: 13px; color: var(--ink-soft); }
+.upload-zone span { font-size: 11px; color: #aaa; font-family: 'JetBrains Mono', monospace; }
+
+.btn-add-lit {
+  margin-top: 12px;
+  padding: 9px 24px;
+  background: var(--ink);
+  color: var(--gold-light);
+  border: none;
+  border-radius: 7px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: 1px;
+}
+.btn-add-lit:hover { background: var(--ink-mid); }
+
+/* DETAIL PANEL */
+.detail-panel {
+  flex: 1;
+  padding: 28px 36px;
+}
+.detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--border);
+  text-align: center;
+  gap: 12px;
+}
+.detail-empty .big-icon { font-size: 52px; opacity: 0.4; }
+.detail-empty p { font-size: 14px; color: var(--parchment-mid); font-family: 'JetBrains Mono', monospace; }
+
+/* LIT DETAIL */
+.lit-detail { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--parchment-mid);
+}
+.detail-meta {}
+.detail-year-journal {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.detail-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+  margin-bottom: 8px;
+  max-width: 680px;
+}
+.detail-authors {
+  font-family: 'Crimson Pro', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.detail-doi {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--sky);
+  margin-top: 6px;
+  word-break: break-all;
+}
+.detail-doi a { color: var(--sky); text-decoration: underline; }
+
+.detail-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.dbtn {
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink-mid);
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.dbtn:hover { border-color: var(--gold); color: var(--gold); }
+.dbtn.primary { background: var(--moss); color: #fff; border-color: var(--moss); }
+.dbtn.primary:hover { background: var(--moss-light); border-color: var(--moss-light); }
+.dbtn.loading { background: #ccc; border-color: #ccc; cursor: not-allowed; }
+
+/* SECTIONS */
+.section-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.section-card-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-card-title .indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.ind-abstract { background: var(--sky); }
+.ind-summary { background: var(--moss); }
+.ind-keywords { background: var(--gold); }
+.ind-notes { background: var(--clay); }
+
+.abstract-text {
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--ink-mid);
+  white-space: pre-wrap;
+}
+.abstract-text.placeholder { color: #ccc; font-style: italic; font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+.abstract-ta {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Crimson Pro', serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--parchment);
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.7;
+}
+.abstract-ta:focus { border-color: var(--gold); }
+
+/* SUMMARY BLOCKS */
+.summary-block {
+  margin-bottom: 10px;
+}
+.summary-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.lbl-purpose { color: var(--sky); }
+.lbl-method { color: var(--moss); }
+.lbl-result { color: var(--gold); }
+.lbl-conclusion { color: var(--clay); }
+
+.summary-content {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ink-mid);
+  padding: 8px 14px;
+  background: var(--parchment-dark);
+  border-radius: 7px;
+  border-left: 3px solid currentColor;
+}
+.lbl-purpose + .summary-content { border-left-color: var(--sky); }
+.lbl-method + .summary-content { border-left-color: var(--moss); }
+.lbl-result + .summary-content { border-left-color: var(--gold); }
+.lbl-conclusion + .summary-content { border-left-color: var(--clay); }
+
+.summary-free {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink-mid);
+  white-space: pre-wrap;
+}
+
+.keywords-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+.keyword-chip {
+  padding: 4px 12px;
+  background: var(--parchment-dark);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--ink-mid);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.notes-ta {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--parchment);
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.7;
+}
+.notes-ta:focus { border-color: var(--gold); background: #fff; }
+
+.btn-save-note {
+  margin-top: 8px;
+  padding: 6px 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Noto Serif SC', serif;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all 0.15s;
+}
+.btn-save-note:hover { border-color: var(--gold); color: var(--gold); }
+
+/* MODEL CONFIG BAR */
+.config-bar {
+  background: var(--parchment-dark);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  flex-wrap: wrap;
+}
+.config-bar label { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.config-select, .config-input {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+.config-select:focus, .config-input:focus { border-color: var(--gold); }
+.config-input { width: 200px; }
+
+.streaming-cursor { display: inline-block; width: 2px; height: 13px; background: var(--gold); animation: blink 0.8s infinite; margin-left: 2px; vertical-align: middle; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ALL VIEW */
+.all-view { padding: 28px 36px; }
+.all-view-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.lit-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px var(--shadow);
+  transition: box-shadow 0.15s;
+  cursor: pointer;
+}
+.lit-card:hover { box-shadow: 0 4px 16px var(--shadow-deep); }
+.lit-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.lit-card-title { font-family: 'Crimson Pro', serif; font-size: 17px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+.lit-card-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 1px; white-space: nowrap; margin-left: 12px; }
+.lit-card-authors { font-family: 'Crimson Pro', serif; font-style: italic; color: var(--ink-soft); font-size: 13px; margin-bottom: 10px; }
+.lit-card-summary { font-size: 13px; color: var(--ink-mid); line-height: 1.7; }
+.lit-card-tags { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.lit-card-tag { padding: 2px 10px; background: var(--parchment-dark); border: 1px solid var(--border); border-radius: 10px; font-size: 11px; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--ink);
+  color: var(--gold-light);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid var(--gold);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-icon">📚</div>
+    <div>
+      <div class="header-title">文献管理 · 要点总结助手</div>
+      <div class="header-sub">LITERATURE MANAGER · AI SUMMARIZER</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="hbtn hbtn-outline" onclick="showAllView()">📋 总览全部</button>
+    <button class="hbtn hbtn-outline" onclick="exportAll()">⬇ 导出</button>
+    <button class="hbtn hbtn-gold" onclick="summarizeAll()">✦ 批量总结</button>
+  </div>
+</div>
+
+<!-- MODEL CONFIG -->
+<div class="config-bar">
+  <label>模型来源</label>
+  <select class="config-select" id="modelSrc" onchange="updateModelSrc()">
+    <option value="claude">Claude API</option>
+    <option value="ollama">本地 Ollama</option>
+  </select>
+  <label>API Key</label>
+  <input class="config-input" type="password" id="apiKey" placeholder="sk-ant-..." />
+  <label>模型</label>
+  <input class="config-input" id="modelName" value="claude-sonnet-4-20250514" style="width:200px" />
+  <label>摘要风格</label>
+  <select class="config-select" id="summaryStyle">
+    <option value="structured">结构化（研究目的/方法/结论）</option>
+    <option value="free">自由段落总结</option>
+    <option value="oneline">一句话核心结论</option>
+    <option value="bilingual">中英双语</option>
+  </select>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <input class="sidebar-search" id="searchInput" placeholder="搜索标题 / 作者 / 关键词…" oninput="filterLit()" />
+      <div class="sidebar-count" id="litCount">共 0 篇文献</div>
+    </div>
+    <div class="sidebar-list" id="sidebarList">
+      <div class="sidebar-empty">还没有文献<br>请在右侧添加</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainPanel">
+
+    <!-- ADD PANEL -->
+    <div class="add-panel">
+      <div class="add-panel-title">添加文献</div>
+      <div class="add-tabs">
+        <button class="add-tab active" onclick="switchAddTab('manual', this)">✍ 手动输入</button>
+        <button class="add-tab" onclick="switchAddTab('paste', this)">📋 粘贴摘要</button>
+        <button class="add-tab" onclick="switchAddTab('doi', this)">🔗 DOI / 标题</button>
+        <button class="add-tab" onclick="switchAddTab('pdf', this)">📄 上传PDF</button>
+      </div>
+
+      <!-- MANUAL -->
+      <div class="add-form show" id="form-manual">
+        <div class="form-row">
+          <div class="form-group" style="flex:3">
+            <label class="form-label">文章标题 *</label>
+            <input class="form-input" id="m-title" placeholder="Extracellular polymeric substances of soil microorganisms…" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">年份</label>
+            <input class="form-input" id="m-year" placeholder="2023" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">作者</label>
+            <input class="form-input" id="m-authors" placeholder="Zhang et al." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">期刊</label>
+            <input class="form-input" id="m-journal" placeholder="Soil Biology & Biochemistry" />
+          </div>
+          <div class="form-group" style="flex:0.7">
+            <label class="form-label">DOI</label>
+            <input class="form-input" id="m-doi" placeholder="10.1016/..." />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">摘要（可选，用于AI总结）</label>
+            <textarea class="form-textarea" id="m-abstract" placeholder="粘贴摘要内容，AI将基于此生成要点总结…"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">关键词（逗号分隔）</label>
+            <input class="form-input" id="m-keywords" placeholder="EPS, soil aggregate, microbial community" />
+          </div>
+        </div>
+        <button class="btn-add-lit" onclick="addLitManual()">＋ 添加到文献库</button>
+      </div>
+
+      <!-- PASTE -->
+      <div class="add-form" id="form-paste">
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label class="form-label">标题 *</label>
+            <input class="form-input" id="p-title" placeholder="文章标题" />
+          </div>
+          <div class="form-group" style="flex:0.5">
+            <label class="form-label">年份</label>
+            <input class="form-input" id="p-year" placeholder="2024" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">作者</label>
+            <input class="form-input" id="p-authors" placeholder="作者" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">粘贴摘要或全文段落</label>
+          <textarea class="form-textarea" id="p-abstract" style="min-height:100px" placeholder="将文献摘要或关键段落粘贴到这里，AI会自动提取研究要点…"></textarea>
+        </div>
+        <button class="btn-add-lit" onclick="addLitPaste()">＋ 添加并智能解析</button>
+      </div>
+
+      <!-- DOI -->
+      <div class="add-form" id="form-doi">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">DOI 或 文章标题（AI将尝试补全信息）</label>
+            <input class="form-input" id="d-doi" placeholder="10.1016/j.soilbio.2023.109012  或  文章标题关键词…" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:1.5">
+            <label class="form-label">补充摘要（可选）</label>
+            <textarea class="form-textarea" id="d-abstract" placeholder="如有摘要可一并粘贴提升总结质量…"></textarea>
+          </div>
+        </div>
+        <button class="btn-add-lit" onclick="addLitDoi()">＋ 添加</button>
+      </div>
+
+      <!-- PDF -->
+      <div class="add-form" id="form-pdf">
+        <div class="upload-zone" onclick="document.getElementById('pdfInput').click()">
+          <input type="file" id="pdfInput" accept=".pdf" onchange="handlePdfUpload(event)" style="display:none" />
+          <div style="font-size:32px;margin-bottom:8px;">📄</div>
+          <p>点击选择 PDF 文件</p>
+          <span>AI将读取全文提取标题、作者、摘要并总结要点</span>
+        </div>
+        <div id="pdfStatus" style="margin-top:10px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--ink-soft);"></div>
+      </div>
+    </div>
+
+    <!-- DETAIL / ALL VIEW -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="detail-empty" id="emptyHint">
+        <div class="big-icon">🗂</div>
+        <p>从左侧选择文献查看详情<br>或添加新文献开始管理</p>
+      </div>
+      <div class="lit-detail" id="litDetail" style="display:none"></div>
+      <div class="all-view" id="allView" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let literature = JSON.parse(localStorage.getItem('litdb') || '[]');
+let currentId = null;
+let activeTab = 'manual';
+
+function save() { localStorage.setItem('litdb', JSON.stringify(literature)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ── TOAST ──
+function toast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── SIDEBAR ──
+function renderSidebar(list) {
+  const el = document.getElementById('sidebarList');
+  const items = list || literature;
+  document.getElementById('litCount').textContent = `共 ${literature.length} 篇文献`;
+  if (!items.length) {
+    el.innerHTML = '<div class="sidebar-empty">还没有文献<br>请在右侧添加</div>';
+    return;
+  }
+  el.innerHTML = items.map(l => `
+    <div class="lit-item ${currentId===l.id?'active':''}" onclick="selectLit('${l.id}')">
+      <button class="lit-item-del" onclick="event.stopPropagation();deleteLit('${l.id}')">✕</button>
+      <div class="lit-item-year">${l.year||'????'} · ${l.journal||'未知期刊'}</div>
+      <div class="lit-item-title">${l.title}</div>
+      <div class="lit-item-authors">${l.authors||''}</div>
+      <div>
+        ${l.summary ? '<span class="lit-tag tag-summarized">✓ 已总结</span>' : '<span class="lit-tag tag-pending">待总结</span>'}
+        ${l.tags ? l.tags.slice(0,2).map(t=>`<span class="lit-tag tag-user">${t}</span>`).join('') : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterLit() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  if (!q) { renderSidebar(literature); return; }
+  renderSidebar(literature.filter(l =>
+    l.title.toLowerCase().includes(q) ||
+    (l.authors||'').toLowerCase().includes(q) ||
+    (l.keywords||'').toLowerCase().includes(q) ||
+    (l.journal||'').toLowerCase().includes(q)
+  ));
+}
+
+// ── ADD TABS ──
+function switchAddTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.add-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.add-form').forEach(f => f.classList.remove('show'));
+  document.getElementById('form-'+tab).classList.add('show');
+}
+
+// ── ADD LITERATURE ──
+function addLit(lit) {
+  lit.id = uid();
+  lit.added = new Date().toISOString();
+  lit.notes = '';
+  lit.summary = null;
+  literature.unshift(lit);
+  save();
+  renderSidebar();
+  selectLit(lit.id);
+  toast('✓ 文献已添加');
+}
+
+function addLitManual() {
+  const title = document.getElementById('m-title').value.trim();
+  if (!title) { toast('⚠ 请填写标题'); return; }
+  addLit({
+    title,
+    year: document.getElementById('m-year').value.trim(),
+    authors: document.getElementById('m-authors').value.trim(),
+    journal: document.getElementById('m-journal').value.trim(),
+    doi: document.getElementById('m-doi').value.trim(),
+    abstract: document.getElementById('m-abstract').value.trim(),
+    keywords: document.getElementById('m-keywords').value.trim(),
+    tags: document.getElementById('m-keywords').value.split(',').map(k=>k.trim()).filter(Boolean).slice(0,3),
+    source: 'manual'
+  });
+  ['m-title','m-year','m-authors','m-journal','m-doi','m-abstract','m-keywords'].forEach(id => document.getElementById(id).value='');
+}
+
+function addLitPaste() {
+  const title = document.getElementById('p-title').value.trim();
+  if (!title) { toast('⚠ 请填写标题'); return; }
+  const lit = {
+    title,
+    year: document.getElementById('p-year').value.trim(),
+    authors: document.getElementById('p-authors').value.trim(),
+    abstract: document.getElementById('p-abstract').value.trim(),
+    source: 'paste'
+  };
+  addLit(lit);
+  ['p-title','p-year','p-authors','p-abstract'].forEach(id => document.getElementById(id).value='');
+  if (lit.abstract) setTimeout(() => summarizeLit(lit.id), 500);
+}
+
+function addLitDoi() {
+  const doi = document.getElementById('d-doi').value.trim();
+  if (!doi) { toast('⚠ 请输入DOI或标题'); return; }
+  const abstract = document.getElementById('d-abstract').value.trim();
+  const isDoiLike = doi.startsWith('10.');
+  addLit({
+    title: isDoiLike ? `DOI: ${doi}` : doi,
+    doi: isDoiLike ? doi : '',
+    abstract,
+    source: 'doi'
+  });
+  document.getElementById('d-doi').value='';
+  document.getElementById('d-abstract').value='';
+}
+
+async function handlePdfUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('pdfStatus');
+  status.textContent = '⏳ 正在读取PDF…';
+
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { toast('⚠ 请先填写API Key'); status.textContent=''; return; }
+
+  const base64 = await new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  status.textContent = '🤖 AI正在解析PDF内容…';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key': apiKey, 'anthropic-version':'2023-06-01' },
+      body: JSON.stringify({
+        model: document.getElementById('modelName').value || 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+            { type: 'text', text: '请从这篇PDF中提取：1)标题 2)作者 3)年份 4)期刊名 5)DOI 6)摘要原文。用JSON返回，字段：title,authors,year,journal,doi,abstract。只返回JSON，不要其他内容。' }
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.find(c=>c.type==='text')?.text || '';
+    const json = JSON.parse(text.replace(/```json|```/g,'').trim());
+    addLit({ ...json, source: 'pdf', pdfName: file.name });
+    status.textContent = '✓ 解析完成';
+    if (json.abstract) setTimeout(() => summarizeLit(literature[0].id), 500);
+  } catch(err) {
+    status.textContent = '⚠ 解析失败：' + err.message;
+  }
+}
+
+// ── SELECT / DELETE ──
+function selectLit(id) {
+  currentId = id;
+  renderSidebar();
+  document.getElementById('allView').style.display = 'none';
+  document.getElementById('emptyHint').style.display = 'none';
+  document.getElementById('litDetail').style.display = 'block';
+  renderDetail(id);
+}
+
+function deleteLit(id) {
+  if (!confirm('确认删除这篇文献？')) return;
+  literature = literature.filter(l => l.id !== id);
+  save();
+  if (currentId === id) {
+    currentId = null;
+    document.getElementById('litDetail').style.display = 'none';
+    document.getElementById('emptyHint').style.display = 'flex';
+  }
+  renderSidebar();
+  toast('已删除');
+}
+
+// ── DETAIL VIEW ──
+function renderDetail(id) {
+  const l = literature.find(x=>x.id===id);
+  if (!l) return;
+  const detail = document.getElementById('litDetail');
+  const style = document.getElementById('summaryStyle').value;
+
+  const summaryHTML = l.summary ? renderSummaryBlock(l.summary, style) : `<div style="color:#ccc;font-family:'JetBrains Mono',monospace;font-size:12px;">尚未生成总结，点击"AI总结要点"开始。</div>`;
+
+  detail.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-meta">
+        <div class="detail-year-journal">${l.year||'????'} · ${l.journal||'未知期刊'}</div>
+        <div class="detail-title">${l.title}</div>
+        <div class="detail-authors">${l.authors||'作者未知'}</div>
+        ${l.doi?`<div class="detail-doi">DOI: <a href="https://doi.org/${l.doi}" target="_blank">${l.doi}</a></div>`:''}
+      </div>
+      <div class="detail-actions">
+        <button class="dbtn" onclick="copyDetail()">📋 复制总结</button>
+        <button class="dbtn primary" id="summarizeBtn" onclick="summarizeLit('${l.id}')">✦ AI总结要点</button>
+      </div>
+    </div>
+
+    <!-- ABSTRACT -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="indicator ind-abstract"></span>摘要 / ABSTRACT</div>
+      ${l.abstract
+        ? `<div class="abstract-text" id="abstractText">${l.abstract}</div>`
+        : `<textarea class="abstract-ta" id="abstractInput" placeholder="粘贴摘要内容（用于AI总结）…"></textarea>
+           <button class="btn-save-note" onclick="saveAbstract('${l.id}')">保存摘要</button>`
+      }
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="indicator ind-summary"></span>AI 要点总结</div>
+      <div id="summaryContent">${summaryHTML}</div>
+    </div>
+
+    <!-- KEYWORDS -->
+    ${l.keywords ? `
+    <div class="section-card">
+      <div class="section-card-title"><span class="indicator ind-keywords"></span>关键词</div>
+      <div class="keywords-wrap">
+        ${l.keywords.split(',').map(k=>`<span class="keyword-chip">${k.trim()}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- NOTES -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="indicator ind-notes"></span>个人备注</div>
+      <textarea class="notes-ta" id="notesInput" placeholder="记录阅读心得、与自己研究的关联、疑问…">${l.notes||''}</textarea>
+      <button class="btn-save-note" onclick="saveNotes('${l.id}')">💾 保存备注</button>
+    </div>
+  `;
+}
+
+function renderSummaryBlock(summary, style) {
+  if (style === 'structured' && typeof summary === 'object' && summary.purpose) {
+    return `
+      <div class="summary-block"><div class="summary-label lbl-purpose">研究目的</div><div class="summary-content">${summary.purpose}</div></div>
+      <div class="summary-block"><div class="summary-label lbl-method">研究方法</div><div class="summary-content">${summary.method}</div></div>
+      <div class="summary-block"><div class="summary-label lbl-result">主要结果</div><div class="summary-content">${summary.result}</div></div>
+      <div class="summary-block"><div class="summary-label lbl-conclusion">核心结论</div><div class="summary-content">${summary.conclusion}</div></div>
+    `;
+  }
+  const text = typeof summary === 'string' ? summary : (summary.text || JSON.stringify(summary));
+  return `<div class="summary-free">${text}</div>`;
+}
+
+function saveAbstract(id) {
+  const l = literature.find(x=>x.id===id);
+  const v = document.getElementById('abstractInput')?.value.trim();
+  if (l && v) { l.abstract = v; save(); renderDetail(id); toast('摘要已保存'); }
+}
+function saveNotes(id) {
+  const l = literature.find(x=>x.id===id);
+  if (l) { l.notes = document.getElementById('notesInput').value; save(); toast('备注已保存'); }
+}
+
+// ── AI SUMMARIZE ──
+async function summarizeLit(id) {
+  const l = literature.find(x=>x.id===id);
+  if (!l) return;
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const modelSrc = document.getElementById('modelSrc').value;
+  if (modelSrc==='claude' && !apiKey) { toast('⚠ 请先填写Claude API Key'); return; }
+  if (!l.abstract) { toast('⚠ 请先添加摘要内容'); return; }
+
+  const btn = document.getElementById('summarizeBtn');
+  if (btn) { btn.textContent='⏳ 总结中…'; btn.classList.add('loading'); }
+
+  const style = document.getElementById('summaryStyle').value;
+  const prompt = buildSummaryPrompt(l, style);
+  const summaryEl = document.getElementById('summaryContent');
+  if (summaryEl) summaryEl.innerHTML = '<span class="streaming-cursor"></span>';
+
+  try {
+    let resultText = '';
+    if (modelSrc === 'claude') {
+      resultText = await callClaudeStream(prompt, apiKey, summaryEl);
+    } else {
+      resultText = await callOllamaStream(prompt, summaryEl);
+    }
+    l.summary = parseSummary(resultText, style);
+    save();
+    renderSidebar();
+    if (summaryEl) summaryEl.innerHTML = renderSummaryBlock(l.summary, style);
+    toast('✓ 要点总结完成');
+  } catch(err) {
+    if (summaryEl) summaryEl.innerHTML = `<span style="color:var(--clay);">⚠ 失败：${err.message}</span>`;
+  }
+  if (btn) { btn.textContent='✦ AI总结要点'; btn.classList.remove('loading'); }
+}
+
+function buildSummaryPrompt(l, style) {
+  const base = `你是专业学术文献分析助手，请分析以下文献：
+标题：${l.title}
+作者：${l.authors||'未知'}
+年份：${l.year||'未知'}
+摘要：${l.abstract}`;
+
+  if (style==='structured') return base + `
+
+请用JSON格式返回，字段：purpose（研究目的，1-2句）, method（研究方法，1-2句）, result（主要结果，2-3句）, conclusion（核心结论与意义，1-2句）。只返回JSON，不加其他内容。`;
+  if (style==='oneline') return base + '\n\n请用一句话（不超过50字）概括这篇文献的核心贡献，直接输出那一句话。';
+  if (style==='bilingual') return base + '\n\n请用3-5段话总结要点，每段先写中文，再写对应英文（用---EN---分隔）。';
+  return base + '\n\n请用3-4段流畅的中文段落总结该文献的研究背景、方法、主要发现和意义。';
+}
+
+function parseSummary(text, style) {
+  if (style==='structured') {
+    try { return JSON.parse(text.replace(/```json|```/g,'').trim()); } catch { return { purpose:'', method:'', result: text, conclusion:'' }; }
+  }
+  return text;
+}
+
+async function callClaudeStream(prompt, apiKey, el) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01' },
+    body: JSON.stringify({
+      model: document.getElementById('modelName').value || 'claude-sonnet-4-20250514',
+      max_tokens: 1000, stream: true,
+      messages: [{ role:'user', content: prompt }]
+    })
+  });
+  if (!resp.ok) { const e=await resp.json(); throw new Error(e.error?.message||resp.statusText); }
+  let text='';
+  const reader = resp.body.getReader();
+  const dec = new TextDecoder();
+  while(true) {
+    const {done,value} = await reader.read();
+    if(done) break;
+    for(const line of dec.decode(value).split('\n')) {
+      if(line.startsWith('data: ')) {
+        try { const d=JSON.parse(line.slice(6)); if(d.delta?.text){text+=d.delta.text; if(el) el.innerHTML=escHtml(text)+'<span class="streaming-cursor"></span>';} } catch{}
+      }
+    }
+  }
+  if(el) el.innerHTML=escHtml(text);
+  return text;
+}
+
+async function callOllamaStream(prompt, el) {
+  const resp = await fetch('http://localhost:11434/api/generate', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model: document.getElementById('modelName').value||'deepseek-r1:8b', prompt, stream:true })
+  });
+  if(!resp.ok) throw new Error('Ollama错误:'+resp.status);
+  let text='';
+  const reader=resp.body.getReader(); const dec=new TextDecoder();
+  while(true) {
+    const {done,value}=await reader.read(); if(done) break;
+    for(const line of dec.decode(value).split('\n').filter(Boolean)) {
+      try{const d=JSON.parse(line);if(d.response){text+=d.response;if(el)el.innerHTML=escHtml(text)+'<span class="streaming-cursor"></span>';}}catch{}
+    }
+  }
+  if(el) el.innerHTML=escHtml(text);
+  return text;
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ── BATCH SUMMARIZE ──
+async function summarizeAll() {
+  const pending = literature.filter(l=>!l.summary&&l.abstract);
+  if(!pending.length) { toast('没有待总结的文献（需有摘要）'); return; }
+  toast(`⏳ 开始批量总结 ${pending.length} 篇…`, 3000);
+  for(const l of pending) {
+    await summarizeLit(l.id);
+    await new Promise(r=>setTimeout(r,500));
+  }
+  toast(`✓ 批量总结完成`);
+}
+
+// ── ALL VIEW ──
+function showAllView() {
+  currentId = null;
+  document.getElementById('emptyHint').style.display='none';
+  document.getElementById('litDetail').style.display='none';
+  const av = document.getElementById('allView');
+  av.style.display='block';
+  const style = document.getElementById('summaryStyle').value;
+  av.innerHTML = `
+    <div class="all-view-title">📋 全部文献总览 <span style="font-size:14px;color:var(--ink-soft);font-weight:400;font-family:'JetBrains Mono',monospace;">${literature.length} 篇</span></div>
+    ${literature.length===0?'<div style="color:#ccc;text-align:center;padding:40px;font-family:\'JetBrains Mono\',monospace;">暂无文献</div>':
+    literature.map(l=>`
+      <div class="lit-card" onclick="selectLit('${l.id}')">
+        <div class="lit-card-header">
+          <div class="lit-card-title">${l.title}</div>
+          <div class="lit-card-meta">${l.year||'????'}</div>
+        </div>
+        <div class="lit-card-authors">${l.authors||''}${l.journal?(' · '+l.journal):''}</div>
+        ${l.summary ? `<div class="lit-card-summary">${getSummaryText(l.summary, style)}</div>` : '<div style="color:#ccc;font-size:12px;font-family:\'JetBrains Mono\',monospace;">⏳ 待总结</div>'}
+        ${l.tags&&l.tags.length?`<div class="lit-card-tags">${l.tags.map(t=>`<span class="lit-card-tag">${t}</span>`).join('')}</div>`:''}
+      </div>
+    `).join('')}
+  `;
+  renderSidebar();
+}
+
+function getSummaryText(summary, style) {
+  if(typeof summary==='string') return summary.slice(0,200)+(summary.length>200?'…':'');
+  if(summary.conclusion) return summary.conclusion;
+  return JSON.stringify(summary).slice(0,200)+'…';
+}
+
+// ── EXPORT ──
+function exportAll() {
+  const style = document.getElementById('summaryStyle').value;
+  let txt = `文献管理总结报告\n生成时间：${new Date().toLocaleString()}\n共 ${literature.length} 篇\n${'═'.repeat(60)}\n\n`;
+  literature.forEach((l,i) => {
+    txt += `【${i+1}】${l.title}\n`;
+    if(l.authors) txt += `作者：${l.authors}\n`;
+    if(l.year) txt += `年份：${l.year}  期刊：${l.journal||'未知'}\n`;
+    if(l.doi) txt += `DOI：${l.doi}\n`;
+    if(l.summary) {
+      txt += `\n▶ 要点总结：\n`;
+      if(typeof l.summary==='object') {
+        if(l.summary.purpose) txt+=`  研究目的：${l.summary.purpose}\n`;
+        if(l.summary.method) txt+=`  研究方法：${l.summary.method}\n`;
+        if(l.summary.result) txt+=`  主要结果：${l.summary.result}\n`;
+        if(l.summary.conclusion) txt+=`  核心结论：${l.summary.conclusion}\n`;
+      } else { txt += l.summary + '\n'; }
+    }
+    if(l.notes) txt += `\n✎ 备注：${l.notes}\n`;
+    txt += `\n${'─'.repeat(60)}\n\n`;
+  });
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`文献总结报告_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  toast('✓ 导出成功');
+}
+
+function copyDetail() {
+  const l = literature.find(x=>x.id===currentId);
+  if(!l) return;
+  let txt = `${l.title}\n${l.authors||''} (${l.year||''})\n\n`;
+  if(l.summary) { txt += typeof l.summary==='string'?l.summary:JSON.stringify(l.summary,null,2); }
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ 已复制到剪贴板'));
+}
+
+function updateModelSrc() {
+  const src = document.getElementById('modelSrc').value;
+  document.getElementById('modelName').value = src==='ollama'?'deepseek-r1:8b':'claude-sonnet-4-20250514';
+}
+
+// ── INIT ──
+renderSidebar();
+</script>
+</body>
+</html>
